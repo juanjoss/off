@@ -1,0 +1,6 @@
+go 1.19
+
+use ./off-etl
+use ./off-generator
+use ./off-users-service
+use ./off-orders-service

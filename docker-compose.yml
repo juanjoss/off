@@ -1,0 +1,106 @@
+version: '3'
+
+services:
+
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - /usr/local/pgsql:/usr/local/pgsql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    restart: always
+
+  etl:
+    container_name: etl
+    hostname: etl
+    build:
+      dockerfile: Dockerfile
+      context: ./off-etl
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DRIVER: ${DB_DRIVER}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      SSL_MODE: ${SSL_MODE}
+      ETL_MAX_RUNS: ${ETL_MAX_RUNS}
+      ETL_RUN_PERIOD: ${ETL_RUN_PERIOD}
+    ports:
+      - ${ETL_PORT}:${ETL_PORT}
+    volumes:
+      - ./off-etl:/app
+    restart: always
+
+  orders:
+    container_name: orders
+    hostname: orders
+    build:
+      dockerfile: Dockerfile
+      context: ./off-orders-service
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DRIVER: ${DB_DRIVER}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      SSL_MODE: ${SSL_MODE}
+      APP_PORT: ${ORDERS_SERVICE_PORT}
+    ports:
+      - ${ORDERS_SERVICE_PORT}:${ORDERS_SERVICE_PORT}
+    volumes:
+      - ./off-orders-service:/app
+    restart: always
+
+  users:
+    container_name: users
+    hostname: users
+    build:
+      dockerfile: Dockerfile
+      context: ./off-users-service
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_DRIVER: ${DB_DRIVER}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      SSL_MODE: ${SSL_MODE}
+      APP_PORT: ${USERS_SERVICE_PORT}
+    ports:
+      - ${USERS_SERVICE_PORT}:${USERS_SERVICE_PORT}
+    volumes:
+      - ./off-users-service:/app
+    restart: always
+
+  generator:
+    container_name: generator
+    hostname: generator
+    build:
+      dockerfile: Dockerfile
+      context: ./off-generator
+    depends_on:
+      - orders
+      - users
+    environment:
+      USERS_SERVICE: http://${USERS_SERVICE}:${USERS_SERVICE_PORT}/api/users
+      ORDERS_SERVICE: http://${ORDERS_SERVICE}:${ORDERS_SERVICE_PORT}/api/products
+      GENERATOR_RUN_PERIOD: ${GENERATOR_RUN_PERIOD}
+    ports:
+      - ${GENERATOR_PORT}:${GENERATOR_PORT}
+    volumes:
+      - ./off-generator:/app
+    restart: always

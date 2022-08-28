@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+
+  etl:
+    build:
+      target: prod
+
+  orders:
+    build:
+      target: prod
+
+  users:
+    build:
+      target: prod
+
+  generator:
+    build:
+      target: prod
