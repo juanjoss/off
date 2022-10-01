@@ -14,37 +14,71 @@ The files in the repo just provide the configuration to develop and run in docke
 - https://github.com/juanjoss/off-generator
 - https://github.com/juanjoss/off-orders-service
 - https://github.com/juanjoss/off-users-service
+- https://github.com/juanjoss/off-notifications-service
 
 The `go.work` file is used to work with multiple go modules.
 
-The 4 components of the system are:
+The components of the system are:
 
 ### off-etl
 
 This service extracts data from the OFF API and loads it into the database.
 
+### off-generator
+
+This service schedules and sends events to the order and user services. It acts as the "real users" and the, not at all weird, "SSDs" of the system.
+
+The possible events are `user-registration` and `product-order`.
+
 ### off-users-service
 
-This service handles user and SSD requests. The endpoints are:
+This service handles user requests and communicates with other services over NATS.
 
-- `POST /api/users/register` (to handle an user-registration event)
-- `POST /api/users/ssds/products` (to handle an add-product-to-ssd event)
-- `GET /api/users/ssds/random` (to get a random SSD)
+HTTP endpoints:
+- `POST /api/register`
+
+NATS communication:
+- `Sub orders.random` (receive request from generator's product-order event)
+- `Pub orders.new` (reply to generator's product-order request)
 
 ### off-orders-service
 
-This service handles product and order requests. The endpoints are:
+This service handles order requests and communicates with other services over NATS.
 
-- `GET /api/products` (to get all products)
-- `GET /api/products/randomProductFromUserSSD` (to get a random product from a user's SSD)
-- `GET /api/products/random` (to get a random product, not necesarilly in a SSD)
-- `POST /api/products/orders` (to handle a product-order event)
+HTTP endpoints:
+- `POST /api/orders`
 
-### off-generator
+NATS communication:
+- `Sub orders.random` (receive request from generator's product-order event)
+- `Pub orders.new` (reply to generator's product-order request)
+- `Pub orders.pending` (publish a new order)
+- `Sub orders.shipped` (receive and update order status)
+- `Sub orders.completed` (receive and update order status)
 
-This service schedules and sends events to the order and user services. It acts as the "real users" and the not at all weird "SSDs" of the system.
+### off-notifications-service
 
-The possible events are `user-registration`, `add-product-to-ssd` and `product-order`.
+This service is used to mock the behind the scenes product-order workflow. It acts as a communication medium with third party external services (supplier and delivery), and relies on `NATS` to read and update an order's state as follows:
+
+1. Subscribes to `orders.pending` and `orders.shipped`.
+
+2. When a new order is created, it will read the order from `orders.pending`, sleep for _t_ minutes (supplier processing time), update its status and publish the order to `orders.shipped`.
+
+2. When the order is read from `orders.shipped`, it will sleep for _t_ minutes (delivery processing time), updates its status and publish it to `orders.completed`.
+
+The sleeping time _t_ (in minutes) will be randomly generated when an order arrives via `orders.pending` and `orders.shipped`.
+
+## Architectural Diagrams
+
+_green = done, red = !green_.
+
+### High level diagram of the project components.
+![arch_basic](https://drive.google.com/uc?export=view&id=1kRnklQk-EVtD-bonvvCYNwBA7MnEfZW6)
+
+### Architecture of the service layer.
+![arch_service](https://drive.google.com/uc?export=view&id=1xB-YAc2PKwYC5Pruw6V7xT4k-iTSLgfn)
+
+### Workflow for the product-order event. 
+![orders_workflow](https://drive.google.com/uc?export=view&id=14DvmCakoJZLWIhCLawNHIGPc4I7sKI01)
 
 ## Run it with docker compose:
 
