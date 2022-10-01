@@ -53,12 +53,13 @@ CREATE TABLE "product_ssds" (
 );
 
 CREATE TABLE "product_orders" (
+  "id" SERIAL NOT NULL,
   "ssd_id" INT,
   "product_id" TEXT,
   "timestamp" timestamp NOT NULL,
   "quantity" INT NOT NULL,
   "status" TEXT NOT NULL,
-  PRIMARY KEY ("ssd_id", "product_id", "timestamp")
+  PRIMARY KEY ("id")
 );
 
 ALTER TABLE "products" ADD FOREIGN KEY ("nutrient_levels_id") REFERENCES "nutrient_levels" ("id");

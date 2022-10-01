@@ -14,6 +14,10 @@ services:
     build:
       target: prod
 
+  notifications:
+    build:
+      target: prod
+
   generator:
     build:
       target: prod

@@ -16,6 +16,11 @@ services:
     build:
       target: dev
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
+
+  notifications:
+    build:
+      target: dev
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   
   generator:
     build:

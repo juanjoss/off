@@ -16,6 +16,13 @@ services:
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     restart: always
 
+  nats:
+    container_name: nats
+    hostname: nats
+    image: nats
+    ports:
+      - "${NATS_PORT}:${NATS_PORT}"
+
   etl:
     container_name: etl
     hostname: etl
@@ -57,6 +64,8 @@ services:
       DB_NAME: ${DB_NAME}
       SSL_MODE: ${SSL_MODE}
       APP_PORT: ${ORDERS_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
     ports:
       - ${ORDERS_SERVICE_PORT}:${ORDERS_SERVICE_PORT}
     volumes:
@@ -80,10 +89,29 @@ services:
       DB_NAME: ${DB_NAME}
       SSL_MODE: ${SSL_MODE}
       APP_PORT: ${USERS_SERVICE_PORT}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
     ports:
       - ${USERS_SERVICE_PORT}:${USERS_SERVICE_PORT}
     volumes:
       - ./off-users-service:/app
+    restart: always
+
+  notifications:
+    container_name: notifications
+    hostname: notifications
+    build:
+      dockerfile: Dockerfile
+      context: ./off-notifications-service
+    depends_on:
+      - postgres
+    environment:
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
+    ports:
+      - ${NOTIFICATIONS_SERVICE_PORT}:${NOTIFICATIONS_SERVICE_PORT}
+    volumes:
+      - ./off-notifications-service:/app
     restart: always
 
   generator:
@@ -96,9 +124,11 @@ services:
       - orders
       - users
     environment:
-      USERS_SERVICE: http://${USERS_SERVICE}:${USERS_SERVICE_PORT}/api/users
-      ORDERS_SERVICE: http://${ORDERS_SERVICE}:${ORDERS_SERVICE_PORT}/api/products
+      USERS_SERVICE: http://${USERS_SERVICE}:${USERS_SERVICE_PORT}/api
+      ORDERS_SERVICE: http://${ORDERS_SERVICE}:${ORDERS_SERVICE_PORT}/api
       GENERATOR_RUN_PERIOD: ${GENERATOR_RUN_PERIOD}
+      NATS_HOST: ${NATS_HOST}
+      NATS_PORT: ${NATS_PORT}
     ports:
       - ${GENERATOR_PORT}:${GENERATOR_PORT}
     volumes:

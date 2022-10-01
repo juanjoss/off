@@ -73,8 +73,8 @@ swagger serve docs.json
 
 ## Work in Progress
 
-- Change communication between services to `NATS`.
+- Change most of the communication between services to `NATS`.
 - Add [qrgen](https://github.com/juanjoss/qrgen) and [shorturl](https://github.com/juanjoss/shorturl) services.
-- Install `Tekton` inside Kubernetes and create a simple CI/CD pipeline.
-- Find a way to create Docker images inside Kubernetes.
-- Create manifest files to deploy into Kubernetes.
+- Create a CI/CD pipeline with `Tekton` and `ArgoCD` inside Kubernetes.
+- Find a way to create Docker images inside Kubernetes (maybe [kaniko?](https://github.com/GoogleContainerTools/kaniko)).
+- Create manifest files to deploy into Kubernetes, maybe [kompose?](https://kompose.io/) since docker compose files already exist.
