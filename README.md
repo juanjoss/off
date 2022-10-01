@@ -107,8 +107,10 @@ swagger serve docs.json
 
 ## Work in Progress
 
+- Add tests to basicaly... Everything.
+- Add authentication for the HTTP endpoints.
 - Change most of the communication between services to `NATS`.
 - Add [qrgen](https://github.com/juanjoss/qrgen) and [shorturl](https://github.com/juanjoss/shorturl) services.
-- Create a CI/CD pipeline with `Tekton` and `ArgoCD` inside Kubernetes.
-- Find a way to create Docker images inside Kubernetes (maybe [kaniko?](https://github.com/GoogleContainerTools/kaniko)).
+- Create a CI/CD pipeline with [Tekton](https://tekton.dev/) and [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) inside Kubernetes.
+- Find a way to build Docker images inside Kubernetes (maybe [kaniko?](https://github.com/GoogleContainerTools/kaniko)).
 - Create manifest files to deploy into Kubernetes, maybe [kompose?](https://kompose.io/) since docker compose files already exist.
