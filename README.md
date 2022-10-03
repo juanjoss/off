@@ -105,12 +105,33 @@ swagger generate spec -o docs.json
 swagger serve docs.json
 ```
 
+## Tekton
+
+### Install Tekton
+
+k apply -f https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+
+### Install `tkn` (Tekton CLI)
+
+```bash
+curl -LO https://github.com/tektoncd/cli/releases/download/v0.26.0/tektoncd-cli-0.26.0_Linux-64bit.deb
+sudo dpkg -i <package-name>
+```
+
+### Run the Pipeline
+
+```bash
+k apply -f task.yaml
+k apply -f pipeline.yaml
+k create -f pipelinerun.yaml
+tkn pipelinerun logs <name> -f
+```
+
 ## Work in Progress
 
 - Add tests to basicaly... Everything.
 - Add authentication for the HTTP endpoints.
-- Change most of the communication between services to `NATS`.
+- Change most of the communication between services to [NATS](https://nats.io/).
 - Add [qrgen](https://github.com/juanjoss/qrgen) and [shorturl](https://github.com/juanjoss/shorturl) services.
-- Create a CI/CD pipeline with [Tekton](https://tekton.dev/) and [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) inside Kubernetes.
-- Find a way to build Docker images inside Kubernetes (maybe [kaniko?](https://github.com/GoogleContainerTools/kaniko)).
+- Create a CI/CD pipeline with [Tekton](https://tekton.dev/) and [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) inside Kubernetes. Tekton will use [kaniko](https://github.com/GoogleContainerTools/kaniko) for building Docker images.
 - Create manifest files to deploy into Kubernetes, maybe [kompose?](https://kompose.io/) since docker compose files already exist.
