@@ -105,13 +105,13 @@ swagger generate spec -o docs.json
 swagger serve docs.json
 ```
 
-## Tekton
+## CI/CD with Tekton and ArgoCD (not ready yet)
 
-### Install Tekton
+### Install Tekton and `tkn` (Tekton CLI)
 
+```bash
 k apply -f https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
-
-### Install `tkn` (Tekton CLI)
+```
 
 ```bash
 curl -LO https://github.com/tektoncd/cli/releases/download/v0.26.0/tektoncd-cli-0.26.0_Linux-64bit.deb
@@ -121,6 +121,7 @@ sudo dpkg -i <package-name>
 ### Run the Pipeline
 
 ```bash
+k apply -f secret.yaml
 k apply -f task.yaml
 k apply -f pipeline.yaml
 k create -f pipelinerun.yaml
