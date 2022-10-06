@@ -107,27 +107,6 @@ swagger serve docs.json
 
 ## CI/CD with Tekton and ArgoCD (not ready yet)
 
-### Install Tekton and `tkn` (Tekton CLI)
-
-```bash
-k apply -f https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
-```
-
-```bash
-curl -LO https://github.com/tektoncd/cli/releases/download/v0.26.0/tektoncd-cli-0.26.0_Linux-64bit.deb
-sudo dpkg -i <package-name>
-```
-
-### Run the Pipeline
-
-```bash
-k apply -f secret.yaml
-k apply -f task.yaml
-k apply -f pipeline.yaml
-k create -f pipelinerun.yaml
-tkn pipelinerun logs <name> -f
-```
-
 ## Work in Progress
 
 - Add tests to basicaly... Everything.
