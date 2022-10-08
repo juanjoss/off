@@ -1,27 +1,30 @@
 version: '3'
 
 services:
-  
+  shorturl:
+    build:
+      target: dev
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
+  qrgen:
+    build:
+      target: dev
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   etl:
     build:
       target: dev
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
-  
   orders:
     build:
       target: dev
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
-  
   users:
     build:
       target: dev
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
-
   notifications:
     build:
       target: dev
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
-  
   generator:
     build:
       target: dev

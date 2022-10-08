@@ -2,6 +2,15 @@ version: '3'
 
 services:
 
+  redis:
+    image: redis:7
+    container_name: redis
+    hostname: redis
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    command: redis-server
+    restart: always
+
   postgres:
     image: postgres:14
     container_name: postgres
@@ -13,7 +22,7 @@ services:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - /usr/local/pgsql:/usr/local/pgsql
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./off-project/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     restart: always
 
   nats:
@@ -23,12 +32,47 @@ services:
     ports:
       - "${NATS_PORT}:${NATS_PORT}"
 
+  shorturl:
+    container_name: shorturl
+    hostname: shorturl
+    depends_on:
+      - redis
+    build:
+      dockerfile: Dockerfile
+      context: ./shorturl
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      APP_PORT: ${SHORTURL_PORT}
+      QRGEN_GRPC_SERVER: ${QRGEN_SERVICE}
+      QRGEN_GRPC_SERVER_PORT: ${QRGEN_GRPC_SERVER_PORT}
+    ports:
+      - ${SHORTURL_PORT}:${SHORTURL_PORT}
+    volumes:
+      - ./shorturl:/app
+    restart: always
+
+  qrgen:
+    container_name: qrgen
+    hostname: qrgen
+    build:
+      dockerfile: Dockerfile
+      context: ./qrgen
+    environment:
+      APP_PORT: ${QRGEN_PORT}
+      GRPC_SERVER_PORT: ${QRGEN_GRPC_SERVER_PORT}
+    ports:
+      - ${QRGEN_PORT}:${QRGEN_PORT}
+    volumes:
+      - ./qrgen:/app
+    restart: always
+
   etl:
     container_name: etl
     hostname: etl
     build:
       dockerfile: Dockerfile
-      context: ./off-etl
+      context: ./off-project/off-etl
     depends_on:
       - postgres
     environment:
@@ -44,7 +88,7 @@ services:
     ports:
       - ${ETL_PORT}:${ETL_PORT}
     volumes:
-      - ./off-etl:/app
+      - ./off-project/off-etl:/app
     restart: always
 
   orders:
@@ -52,7 +96,7 @@ services:
     hostname: orders
     build:
       dockerfile: Dockerfile
-      context: ./off-orders-service
+      context: ./off-project/off-orders-service
     depends_on:
       - postgres
     environment:
@@ -69,7 +113,7 @@ services:
     ports:
       - ${ORDERS_SERVICE_PORT}:${ORDERS_SERVICE_PORT}
     volumes:
-      - ./off-orders-service:/app
+      - ./off-project/off-orders-service:/app
     restart: always
 
   users:
@@ -77,7 +121,7 @@ services:
     hostname: users
     build:
       dockerfile: Dockerfile
-      context: ./off-users-service
+      context: ./off-project/off-users-service
     depends_on:
       - postgres
     environment:
@@ -94,7 +138,7 @@ services:
     ports:
       - ${USERS_SERVICE_PORT}:${USERS_SERVICE_PORT}
     volumes:
-      - ./off-users-service:/app
+      - ./off-project/off-users-service:/app
     restart: always
 
   notifications:
@@ -102,16 +146,16 @@ services:
     hostname: notifications
     build:
       dockerfile: Dockerfile
-      context: ./off-notifications-service
+      context: ./off-project/off-notifications-service
     depends_on:
-      - postgres
+      - nats
     environment:
       NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
     ports:
       - ${NOTIFICATIONS_SERVICE_PORT}:${NOTIFICATIONS_SERVICE_PORT}
     volumes:
-      - ./off-notifications-service:/app
+      - ./off-project/off-notifications-service:/app
     restart: always
 
   generator:
@@ -119,18 +163,20 @@ services:
     hostname: generator
     build:
       dockerfile: Dockerfile
-      context: ./off-generator
+      context: ./off-project/off-generator
     depends_on:
       - orders
       - users
     environment:
-      USERS_SERVICE: http://${USERS_SERVICE}:${USERS_SERVICE_PORT}/api
-      ORDERS_SERVICE: http://${ORDERS_SERVICE}:${ORDERS_SERVICE_PORT}/api
+      USERS_SERVICE: ${USERS_SERVICE}
+      USERS_SERVICE_PORT: ${USERS_SERVICE_PORT}
+      ORDERS_SERVICE: ${ORDERS_SERVICE}
+      ORDERS_SERVICE_PORT: ${ORDERS_SERVICE_PORT}
       GENERATOR_RUN_PERIOD: ${GENERATOR_RUN_PERIOD}
       NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
     ports:
       - ${GENERATOR_PORT}:${GENERATOR_PORT}
     volumes:
-      - ./off-generator:/app
+      - ./off-project/off-generator:/app
     restart: always

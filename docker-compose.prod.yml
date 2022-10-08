@@ -2,6 +2,14 @@ version: '3'
 
 services:
 
+  shorturl:
+    build:
+      target: prod
+
+  qrgen:
+    build:
+      target: prod
+
   etl:
     build:
       target: prod
