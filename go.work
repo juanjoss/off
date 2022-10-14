@@ -4,6 +4,6 @@ use ./qrgen
 use ./shorturl
 use ./off-etl
 use ./off-generator
-use ./off-users-service
-use ./off-orders-service
-use ./off-notifications-service
+use ./off-users
+use ./off-orders
+use ./off-notifications

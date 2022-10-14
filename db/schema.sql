@@ -7,7 +7,6 @@ CREATE TABLE "products" (
   "energy_serving" FLOAT,
   "nutrient_levels_id" INT,
   "nova_group" INT,
-  "nutriscore_score" INT,
   "nutriscore_grade" TEXT
 );
 

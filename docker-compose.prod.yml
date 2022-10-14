@@ -3,29 +3,22 @@ version: '3'
 services:
 
   shorturl:
-    build:
-      target: prod
+    image: jujoss/shorturl:latest
 
   qrgen:
-    build:
-      target: prod
+    image: jujoss/qrgen:latest
 
   etl:
-    build:
-      target: prod
+    image: jujoss/off-etl:latest
 
   orders:
-    build:
-      target: prod
+    image: jujoss/off-orders:latest
 
   users:
-    build:
-      target: prod
+    image: jujoss/off-users:latest
 
   notifications:
-    build:
-      target: prod
+    image: jujoss/off-notifications:latest
 
   generator:
-    build:
-      target: prod
+    image: jujoss/off-generator:latest

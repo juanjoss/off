@@ -3,29 +3,57 @@ version: '3'
 services:
   shorturl:
     build:
-      target: dev
+        dockerfile: Dockerfile
+        context: ./shorturl
+        target: dev
+    volumes:
+      - ./shorturl:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   qrgen:
     build:
-      target: dev
+        dockerfile: Dockerfile
+        context: ./qrgen
+        target: dev
+    volumes:
+      - ./qrgen:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   etl:
     build:
-      target: dev
+        dockerfile: Dockerfile
+        context: ./off-etl
+        target: dev
+    volumes:
+      - ./off-etl:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   orders:
     build:
-      target: dev
+        dockerfile: Dockerfile
+        context: ./off-orders
+        target: dev
+    volumes:
+      - ./off-orders:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   users:
     build:
-      target: dev
+        dockerfile: Dockerfile
+        context: ./off-users
+        target: dev
+    volumes:
+      - ./off-users:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   notifications:
     build:
-      target: dev
+        dockerfile: Dockerfile
+        context: ./off-notifications
+        target: dev
+    volumes:
+      - ./off-notifications:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
   generator:
     build:
-      target: dev
+        dockerfile: Dockerfile
+        context: ./off-generator
+        target: dev
+    volumes:
+      - ./off-generator:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go

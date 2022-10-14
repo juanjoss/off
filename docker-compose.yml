@@ -22,7 +22,7 @@ services:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - /usr/local/pgsql:/usr/local/pgsql
-      - ./off-project/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     restart: always
 
   nats:
@@ -37,9 +37,6 @@ services:
     hostname: shorturl
     depends_on:
       - redis
-    build:
-      dockerfile: Dockerfile
-      context: ./shorturl
     environment:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
@@ -48,105 +45,82 @@ services:
       QRGEN_GRPC_SERVER_PORT: ${QRGEN_GRPC_SERVER_PORT}
     ports:
       - ${SHORTURL_PORT}:${SHORTURL_PORT}
-    volumes:
-      - ./shorturl:/app
     restart: always
 
   qrgen:
     container_name: qrgen
     hostname: qrgen
-    build:
-      dockerfile: Dockerfile
-      context: ./qrgen
     environment:
       APP_PORT: ${QRGEN_PORT}
       GRPC_SERVER_PORT: ${QRGEN_GRPC_SERVER_PORT}
     ports:
       - ${QRGEN_PORT}:${QRGEN_PORT}
-    volumes:
-      - ./qrgen:/app
     restart: always
 
   etl:
     container_name: etl
     hostname: etl
-    build:
-      dockerfile: Dockerfile
-      context: ./off-project/off-etl
     depends_on:
       - postgres
     environment:
       DB_HOST: ${DB_HOST}
       DB_DRIVER: ${DB_DRIVER}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_PORT: ${POSTGRES_PORT}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
       SSL_MODE: ${SSL_MODE}
       ETL_MAX_RUNS: ${ETL_MAX_RUNS}
       ETL_RUN_PERIOD: ${ETL_RUN_PERIOD}
     ports:
       - ${ETL_PORT}:${ETL_PORT}
-    volumes:
-      - ./off-project/off-etl:/app
     restart: always
 
   orders:
     container_name: orders
     hostname: orders
-    build:
-      dockerfile: Dockerfile
-      context: ./off-project/off-orders-service
     depends_on:
       - postgres
+      - nats
     environment:
       DB_HOST: ${DB_HOST}
       DB_DRIVER: ${DB_DRIVER}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_PORT: ${POSTGRES_PORT}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
       SSL_MODE: ${SSL_MODE}
       APP_PORT: ${ORDERS_SERVICE_PORT}
       NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
     ports:
       - ${ORDERS_SERVICE_PORT}:${ORDERS_SERVICE_PORT}
-    volumes:
-      - ./off-project/off-orders-service:/app
     restart: always
 
   users:
     container_name: users
     hostname: users
-    build:
-      dockerfile: Dockerfile
-      context: ./off-project/off-users-service
     depends_on:
       - postgres
+      - nats
     environment:
       DB_HOST: ${DB_HOST}
       DB_DRIVER: ${DB_DRIVER}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_PORT: ${POSTGRES_PORT}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
       SSL_MODE: ${SSL_MODE}
       APP_PORT: ${USERS_SERVICE_PORT}
       NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
     ports:
       - ${USERS_SERVICE_PORT}:${USERS_SERVICE_PORT}
-    volumes:
-      - ./off-project/off-users-service:/app
     restart: always
 
   notifications:
     container_name: notifications
     hostname: notifications
-    build:
-      dockerfile: Dockerfile
-      context: ./off-project/off-notifications-service
     depends_on:
       - nats
     environment:
@@ -154,19 +128,16 @@ services:
       NATS_PORT: ${NATS_PORT}
     ports:
       - ${NOTIFICATIONS_SERVICE_PORT}:${NOTIFICATIONS_SERVICE_PORT}
-    volumes:
-      - ./off-project/off-notifications-service:/app
     restart: always
 
   generator:
     container_name: generator
     hostname: generator
-    build:
-      dockerfile: Dockerfile
-      context: ./off-project/off-generator
     depends_on:
       - orders
       - users
+      - notifications
+      - nats
     environment:
       USERS_SERVICE: ${USERS_SERVICE}
       USERS_SERVICE_PORT: ${USERS_SERVICE_PORT}
@@ -177,6 +148,4 @@ services:
       NATS_PORT: ${NATS_PORT}
     ports:
       - ${GENERATOR_PORT}:${GENERATOR_PORT}
-    volumes:
-      - ./off-project/off-generator:/app
     restart: always

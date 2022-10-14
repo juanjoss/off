@@ -1,4 +1,4 @@
-# off-project
+# off
 
 This is toy project which uses the Open Food Facts API to simulate a system in where users (actually, a generator) have monitoring devices for their products (or SSDs), and the SSDs (again, the generator) communicate with a REST backend service by sending a set of randomly generated and scheduled events (by the generator) in order to mantain the stock of products beign monitor by a SSD.
 
@@ -8,13 +8,13 @@ _Why create a weird word for an hipothetical IoT device which monitors the produ
 
 ## What's inside?
 
-The files in the repo just provide the configuration to develop and run in docker all the components. You need to clone the repositories of all the services:
+The files in the repo just provide the configuration to develop and run in docker compose all the components. You need to clone the repositories of all the services:
 
 - https://github.com/juanjoss/off-etl
 - https://github.com/juanjoss/off-generator
-- https://github.com/juanjoss/off-orders-service
-- https://github.com/juanjoss/off-users-service
-- https://github.com/juanjoss/off-notifications-service
+- https://github.com/juanjoss/off-orders
+- https://github.com/juanjoss/off-users
+- https://github.com/juanjoss/off-notifications
 
 The `go.work` file is used to work with multiple go modules.
 
@@ -30,7 +30,7 @@ This service schedules and sends events to the order and user services. It acts 
 
 The possible events are `user-registration` and `product-order`.
 
-### off-users-service
+### off-users
 
 This service handles user requests and communicates with other services over NATS.
 
@@ -41,7 +41,7 @@ NATS communication:
 - `Sub orders.random` (receive request from generator's product-order event)
 - `Pub orders.new` (reply to generator's product-order request)
 
-### off-orders-service
+### off-orders
 
 This service handles order requests and communicates with other services over NATS.
 
@@ -55,7 +55,7 @@ NATS communication:
 - `Sub orders.shipped` (receive and update order status)
 - `Sub orders.completed` (receive and update order status)
 
-### off-notifications-service
+### off-notifications
 
 This service is used to mock the behind the scenes product-order workflow. It acts as a communication medium with third party external services (supplier and delivery), and relies on `NATS` to read and update an order's state as follows:
 
@@ -71,32 +71,36 @@ The sleeping time _t_ (in minutes) will be randomly generated when an order arri
 
 _green = done, red = !green_.
 
-### High level diagram of the project components.
+### Database Schema (ERD)
+
+![db_schema](https://drive.google.com/uc?export=view&id=1beAZY-NYLbBLbCZZPY-otM-R7hBajjFJ)
+
+### High level diagram of the project components
 ![arch_basic](https://drive.google.com/uc?export=view&id=1kRnklQk-EVtD-bonvvCYNwBA7MnEfZW6)
 
-### Architecture of the service layer.
+### Architecture of the service layer
 ![arch_service](https://drive.google.com/uc?export=view&id=1xB-YAc2PKwYC5Pruw6V7xT4k-iTSLgfn)
 
-### Workflow for the product-order event. 
+### Workflow for the product-order event 
 ![orders_workflow](https://drive.google.com/uc?export=view&id=14DvmCakoJZLWIhCLawNHIGPc4I7sKI01)
 
-## Run it with docker compose:
+## Run in docker compose:
 
 Both environments use the `.env` file for configuration.
 
 - Development environment:
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-```
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+    ```
 
 - Production environment:
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
+    ```bash
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+    ```
 
-## Generate Swagger Docs
+## Generate swagger docs
 
 The user and order services both have Swagger documentation available. You need to generate and serve it:
 
@@ -105,11 +109,7 @@ swagger generate spec -o docs.json
 swagger serve docs.json
 ```
 
-## CI/CD with Tekton and ArgoCD (not ready yet)
-
 ## Work in Progress
 
 - Add tests to basicaly... Everything.
-- Add [qrgen](https://github.com/juanjoss/qrgen) and [shorturl](https://github.com/juanjoss/shorturl) services.
-- Create a CI/CD pipeline with [Tekton](https://tekton.dev/) and [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) inside Kubernetes. Tekton will use [kaniko](https://github.com/GoogleContainerTools/kaniko) for building Docker images.
-    - Update. Considering changing Tekton for [Github Actions](https://github.com/features/actions) but keeping ArgoCD for GitOps.
+- Integrate [qrgen](https://github.com/juanjoss/qrgen) and [shorturl](https://github.com/juanjoss/shorturl) services.
