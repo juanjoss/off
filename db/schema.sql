@@ -7,6 +7,7 @@ CREATE TABLE "products" (
   "energy_serving" FLOAT,
   "nutrient_levels_id" INT,
   "nova_group" INT,
+  "nutriscore_score" INT,
   "nutriscore_grade" TEXT
 );
 
@@ -53,8 +54,8 @@ CREATE TABLE "product_ssds" (
 
 CREATE TABLE "product_orders" (
   "id" SERIAL NOT NULL,
-  "ssd_id" INT,
-  "product_id" TEXT,
+  "ssd_id" INT NOT NULL,
+  "product_id" TEXT NOT NULL,
   "timestamp" timestamp NOT NULL,
   "quantity" INT NOT NULL,
   "status" TEXT NOT NULL,
