@@ -1,6 +1,18 @@
 version: '3'
 
 services:
+  pgadmin:
+      container_name: pgadmin
+      image: dpage/pgadmin4
+      environment:
+        PGADMIN_DEFAULT_EMAIL: admin@admin.com
+        PGADMIN_DEFAULT_PASSWORD: admin
+        PGADMIN_CONFIG_SERVER_MODE: 'False'
+      volumes:
+        - pgadmin-data:/var/lib/pgadmin
+      ports:
+        - "8081:80"
+      restart: unless-stopped
   shorturl:
     build:
         dockerfile: Dockerfile
@@ -57,3 +69,5 @@ services:
     volumes:
       - ./off-generator:/app
     command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
+volumes:
+  pgadmin-data:

@@ -6,6 +6,8 @@ _Why a generator and not an UI?... Because I don't like frontend stuff and I jus
 
 _Why create a weird word for an hipothetical IoT device which monitors the products we ask it to?... Because if someone implements this system in real life I don't need to go ever again to the supermarket._
 
+_Doesn't something like this already exist?... No. I'm talking about a system which should handle supermarket shopping in the same time or less it would took you. Probably logistically imposible today, but who knows..._
+
 ## What's inside?
 
 The files in the repo just provide the configuration to develop and run in docker compose all the components. You need to clone the repositories of all the services:
@@ -39,6 +41,7 @@ HTTP endpoints:
 
 NATS communication:
 - `Sub orders.random` (receive request from generator's product-order event)
+- `Sub orders.completed` (receive order and add the product to the user's ssd)
 - `Pub orders.new` (reply to generator's product-order request)
 
 ### off-orders
@@ -67,22 +70,23 @@ This service is used to mock the behind the scenes product-order workflow. It ac
 
 The sleeping time _t_ (in minutes) will be randomly generated when an order arrives via `orders.pending` and `orders.shipped`.
 
+## Database Schema (ERD)
+
+![db_schema](https://drive.google.com/uc?export=view&id=1ajSHXDxV_ZJ_CnMePGv4mCcYYwZMKAHg)
+
 ## Architectural Diagrams
 
 _green = done, red = !green_.
 
-### Database Schema (ERD)
-
-![db_schema](https://drive.google.com/uc?export=view&id=1beAZY-NYLbBLbCZZPY-otM-R7hBajjFJ)
-
 ### High level diagram of the project components
+
 ![arch_basic](https://drive.google.com/uc?export=view&id=1kRnklQk-EVtD-bonvvCYNwBA7MnEfZW6)
 
 ### Architecture of the service layer
-![arch_service](https://drive.google.com/uc?export=view&id=1xB-YAc2PKwYC5Pruw6V7xT4k-iTSLgfn)
+![arch_service](https://drive.google.com/uc?export=view&id=1geAT_GDm3HVmAdNekJyN9K_0phJ26iJT)
 
 ### Workflow for the product-order event 
-![orders_workflow](https://drive.google.com/uc?export=view&id=14DvmCakoJZLWIhCLawNHIGPc4I7sKI01)
+![orders_workflow](https://drive.google.com/uc?export=view&id=1c6LWkgnjMpJpM263uh90kqXWavSWRR7N)
 
 ## Run in docker compose:
 
