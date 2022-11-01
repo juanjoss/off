@@ -1,17 +1,6 @@
 version: '3'
 
 services:
-  redis:
-    image: redis
-    container_name: redis
-    hostname: redis
-    ports:
-      - ${REDIS_PORT}:${REDIS_PORT}
-    volumes:
-      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
-    command: redis-server /usr/local/etc/redis/redis.conf
-    restart: always
-
   postgres:
     image: postgres:14
     container_name: postgres
@@ -62,9 +51,6 @@ services:
       SSL_MODE: ${SSL_MODE}
       ETL_MAX_RUNS: ${ETL_MAX_RUNS}
       ETL_RUN_PERIOD: ${ETL_RUN_PERIOD}
-    volumes:
-      - ./off-etl:/app
-    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   orders:
@@ -86,9 +72,6 @@ services:
       NATS_PORT: ${NATS_PORT}
     expose:
       - ${HTTP_SERVICE_PORT}
-    volumes:
-      - ./off-orders:/app
-    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   users:
@@ -110,9 +93,6 @@ services:
       NATS_PORT: ${NATS_PORT}
     expose:
       - ${HTTP_SERVICE_PORT}
-    volumes:
-      - ./off-users:/app
-    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   notifications:
@@ -123,9 +103,6 @@ services:
       - nats
     environment:
       NATS_PORT: ${NATS_PORT}
-    volumes:
-      - ./off-notifications:/app
-    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   generator:
@@ -140,10 +117,6 @@ services:
     environment:
       GENERATOR_RUN_PERIOD: ${GENERATOR_RUN_PERIOD}
       NATS_PORT: ${NATS_PORT}
-    volumes:
-      - ./off-generator:/app
-    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
-
 volumes:
   pgadmin_data: {}
