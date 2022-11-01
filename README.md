@@ -83,26 +83,10 @@ _green = done, red = !green_.
 ![arch_basic](https://drive.google.com/uc?export=view&id=1kRnklQk-EVtD-bonvvCYNwBA7MnEfZW6)
 
 ### Architecture of the service layer
-![arch_service](https://drive.google.com/uc?export=view&id=1geAT_GDm3HVmAdNekJyN9K_0phJ26iJT)
+![arch_service](https://drive.google.com/uc?export=view&id=1hOVoc3tpvdBLaKKwlg45KcMx2MgVtkyO)
 
 ### Workflow for the product-order event 
 ![orders_workflow](https://drive.google.com/uc?export=view&id=1c6LWkgnjMpJpM263uh90kqXWavSWRR7N)
-
-## Run in docker compose:
-
-Both environments use the `.env` file for configuration.
-
-- Development environment:
-
-    ```bash
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-    ```
-
-- Production environment:
-
-    ```bash
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-    ```
 
 ## Generate swagger docs
 
@@ -113,7 +97,10 @@ swagger generate spec -o docs.json
 swagger serve docs.json
 ```
 
-## Work in Progress
+## Run it with Docker Compose
 
-- Add tests to basicaly... Everything.
-- Integrate [qrgen](https://github.com/juanjoss/qrgen) and [shorturl](https://github.com/juanjoss/shorturl) services.
+The `.env` file is used to for configuration.
+
+```bash
+docker compose up -d
+```

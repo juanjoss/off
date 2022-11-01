@@ -1,7 +1,5 @@
 go 1.19
 
-use ./qrgen
-use ./shorturl
 use ./off-etl
 use ./off-generator
 use ./off-users

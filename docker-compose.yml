@@ -1,14 +1,15 @@
 version: '3'
 
 services:
-
   redis:
-    image: redis:7
+    image: redis
     container_name: redis
     hostname: redis
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
-    command: redis-server
+    volumes:
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
     restart: always
 
   postgres:
@@ -24,6 +25,19 @@ services:
       - /usr/local/pgsql:/usr/local/pgsql
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     restart: always
+  
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - 5433:80
+    restart: unless-stopped
 
   nats:
     container_name: nats
@@ -32,34 +46,10 @@ services:
     ports:
       - "${NATS_PORT}:${NATS_PORT}"
 
-  shorturl:
-    container_name: shorturl
-    hostname: shorturl
-    depends_on:
-      - redis
-    environment:
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      APP_PORT: ${SHORTURL_PORT}
-      QRGEN_GRPC_SERVER: ${QRGEN_SERVICE}
-      QRGEN_GRPC_SERVER_PORT: ${QRGEN_GRPC_SERVER_PORT}
-    ports:
-      - ${SHORTURL_PORT}:${SHORTURL_PORT}
-    restart: always
-
-  qrgen:
-    container_name: qrgen
-    hostname: qrgen
-    environment:
-      APP_PORT: ${QRGEN_PORT}
-      GRPC_SERVER_PORT: ${QRGEN_GRPC_SERVER_PORT}
-    ports:
-      - ${QRGEN_PORT}:${QRGEN_PORT}
-    restart: always
-
   etl:
     container_name: etl
     hostname: etl
+    image: jujoss/off-etl:latest
     depends_on:
       - postgres
     environment:
@@ -72,17 +62,20 @@ services:
       SSL_MODE: ${SSL_MODE}
       ETL_MAX_RUNS: ${ETL_MAX_RUNS}
       ETL_RUN_PERIOD: ${ETL_RUN_PERIOD}
-    ports:
-      - ${ETL_PORT}:${ETL_PORT}
+    volumes:
+      - ./off-etl:/app
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   orders:
     container_name: orders
     hostname: orders
+    image: jujoss/off-orders:latest
     depends_on:
       - postgres
       - nats
     environment:
+      APP_PORT: ${HTTP_SERVICE_PORT}
       DB_HOST: ${DB_HOST}
       DB_DRIVER: ${DB_DRIVER}
       DB_PORT: ${POSTGRES_PORT}
@@ -90,20 +83,23 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
       SSL_MODE: ${SSL_MODE}
-      APP_PORT: ${ORDERS_SERVICE_PORT}
-      NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
-    ports:
-      - ${ORDERS_SERVICE_PORT}:${ORDERS_SERVICE_PORT}
+    expose:
+      - ${HTTP_SERVICE_PORT}
+    volumes:
+      - ./off-orders:/app
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   users:
     container_name: users
     hostname: users
+    image: jujoss/off-users:latest
     depends_on:
       - postgres
       - nats
     environment:
+      APP_PORT: ${HTTP_SERVICE_PORT}
       DB_HOST: ${DB_HOST}
       DB_DRIVER: ${DB_DRIVER}
       DB_PORT: ${POSTGRES_PORT}
@@ -111,41 +107,43 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
       SSL_MODE: ${SSL_MODE}
-      APP_PORT: ${USERS_SERVICE_PORT}
-      NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
-    ports:
-      - ${USERS_SERVICE_PORT}:${USERS_SERVICE_PORT}
+    expose:
+      - ${HTTP_SERVICE_PORT}
+    volumes:
+      - ./off-users:/app
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   notifications:
     container_name: notifications
     hostname: notifications
+    image: jujoss/off-notifications:latest
     depends_on:
       - nats
     environment:
-      NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
-    ports:
-      - ${NOTIFICATIONS_SERVICE_PORT}:${NOTIFICATIONS_SERVICE_PORT}
+    volumes:
+      - ./off-notifications:/app
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
 
   generator:
     container_name: generator
     hostname: generator
+    image: jujoss/off-generator:latest
     depends_on:
       - orders
       - users
       - notifications
       - nats
     environment:
-      USERS_SERVICE: ${USERS_SERVICE}
-      USERS_SERVICE_PORT: ${USERS_SERVICE_PORT}
-      ORDERS_SERVICE: ${ORDERS_SERVICE}
-      ORDERS_SERVICE_PORT: ${ORDERS_SERVICE_PORT}
       GENERATOR_RUN_PERIOD: ${GENERATOR_RUN_PERIOD}
-      NATS_HOST: ${NATS_HOST}
       NATS_PORT: ${NATS_PORT}
-    ports:
-      - ${GENERATOR_PORT}:${GENERATOR_PORT}
+    volumes:
+      - ./off-generator:/app
+    command: reflex -r '(\.go$$)' --decoration=fancy -s go run /app/main.go
     restart: always
+
+volumes:
+  pgadmin_data: {}
