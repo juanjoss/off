@@ -10,16 +10,6 @@ _Doesn't something like this already exist?... No. I'm talking about a system wh
 
 ## What's inside?
 
-The files in the repo just provide the configuration to develop and run in docker compose all the components. You need to clone the repositories of all the services:
-
-- https://github.com/juanjoss/off-etl
-- https://github.com/juanjoss/off-generator
-- https://github.com/juanjoss/off-orders
-- https://github.com/juanjoss/off-users
-- https://github.com/juanjoss/off-notifications
-
-The `go.work` file is used to work with multiple go modules.
-
 The components of the system are:
 
 ### off-etl
